@@ -63,16 +63,16 @@
 		"location": "northeurope",
 		"uniqueDnsLabelPrefix": "[concat('store', uniquestring(resourceGroup().id))]",
 		"addressPrefix": "10.1.0.0/16",
-		"subnetName": "Subnet-1",
-		"subnetPrefix": "10.1.0.0/24",
+		"subnetName1": "Subnet-1",
+		"subnetPrefix1": "10.1.0.0/24",
 		"nicName": "NIC-Perso",
-		"publicIPName": "public-IP",
+		"publicIPName1": "public-IP-1",
 		"publicIPType": "Dynamic",
 		"vnetName": "vnet-perso",
 		"nsgName": "nsg-perso",
 		"sshKeyPass": "[concat('/home/', parameters('adminUserName'),'/.ssh/authorized_keys')]",
 		"vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
-		"subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+		"subnetRef1": "[concat(variables('vnetID'),'/subnets/',variables('subnetName1'))]",
 		"apiVersion": "23-02-2018",
 		"availabilitySetName": "availabilitySet1"
 	},
@@ -95,7 +95,7 @@
 			}
 		},
 		{
-			"apiVersion": "2017-03-30",
+			"apiVersion": "2017-10-01",
 			"type": "Microsoft.Network/networkSecurityGroups",
 			"name": "[variables('nsgName')]",
 			"location": "[variables('location')]",
@@ -119,19 +119,16 @@
 			}
 		},
 		{
-			"apiVersion": "2017-03-30",
+			"apiVersion": "2017-11-01",
 			"type": "Microsoft.Network/publicIPAddresses",
-			"name": "[variables('publicIPName')]",
+			"name": "[variables('publicIPName1')]",
 			"location": "[variables('location')]",
 			"properties": {
-				"publicIPAllocationMethod": "[variables('publicIPType')]",
-				"dnsSettings": {
-					"domainNameLabel": "[variables('uniqueDnsLabelPrefix')]"
-				}
+				"publicIPAllocationMethod": "[variables('publicIPType')]"
 			}
 		},
 		{
-			"apiVersion": "2017-03-30",
+			"apiVersion": "2017-10-01",
 			"type": "Microsoft.Network/virtualNetworks",
 			"name": "[variables('vnetName')]",
 			"location": "[variables('location')]",
@@ -146,9 +143,9 @@
 				},
 				"subnets": [
 					{
-						"name": "[variables('subnetName')]",
+						"name": "[variables('subnetName1')]",
 						"properties": {
-							"addressPrefix": "[variables('subnetPrefix')]",
+							"addressPrefix": "[variables('subnetPrefix1')]",
 							"networkSecurityGroup": {
 								"id": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgName'))]"
 							}
@@ -163,7 +160,7 @@
 			"name": "[variables('nicName')]",
 			"location": "[variables('location')]",
 			"dependsOn": [
-				"[concat('Microsoft.Network/publicIPAddresses/',variables('publicIPName'))]",
+				"[concat('Microsoft.Network/publicIPAddresses/',variables('publicIPName1'))]",
 				"[concat('Microsoft.Network/virtualNetworks/',variables('vnetName'))]"
 			],
 			"properties": {
@@ -173,16 +170,16 @@
 						"properties": {
 							"privateIPAllocationMethod": "Dynamic",
 							"publicIPAddress": {
-								"id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPName'))]"
+								"id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPName1'))]"
 							},
 							"subnet": {
-								"id": "[variables('subnetRef')]"
+								"id": "[variables('subnetRef1')]"
 							}
 						}
 					}
 				]
 			}
-		},
+		},		
 		{
 			"apiVersion": "2016-04-30-preview",
 			"type": "Microsoft.Compute/virtualMachines",
