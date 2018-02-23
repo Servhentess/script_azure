@@ -1,4 +1,247 @@
 {
 	"$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
-	"contentVersion": "0.0.1",	
+	"contentVersion": "1.0.0.0",
+
+
+
+
+	"parameters": {
+		"adminUserName": {
+			"type": "string",
+			"defaultValue": "kickme",
+			"metadata": {
+				"description": "Votre nom d'utilisateur pour la VM."
+			}
+		},
+		"sshKeyData": {
+			"type": "string",
+			"metadata": {
+				"description": "Saisissez votre cles ssh publique."
+			}
+		},
+		"vmSizeList": {
+			"type": "string",
+			"defaultValue": "Standard_B1s",
+			"allowedValues": [
+				"Standard_A0",
+				"Standard_B1s"
+			],
+			"metadata": {
+				"description": "Choisissez le type de machine voulu."
+			}			
+		},
+		"vmName1": {
+			"type": "string",
+			"defaultValue": "sol",
+			"metadata": {
+				"description": "Donnez un nom à votre machine adorée."
+			}
+		},
+		"vmName2": {
+			"type": "string",
+			"defaultValue": "do",
+			"metadata": {
+				"description": "Donnez un nom à votre machine adorée."
+			}
+		},
+		"vmName3": {
+			"type": "string",
+			"defaultValue": "mi",
+			"metadata": {
+				"description": "Donnez un nom à votre machine adorée."
+			}
+		}		
+	},
+
+
+
+
+	"variables": {
+		"imageOffer": "CentOS",
+		"imagePublisher": "OpenLogic",
+		"imageVersion": "7.4",
+		"location": "northeurope",
+		"uniqueDnsLabelPrefix": "[concat('store', uniquestring(resourceGroup().id))]",
+		"addressPrefix": "10.1.0.0/16",
+		"subnetName": "Subnet-1",
+		"subnetPrefix": "10.1.0.0/24",
+		"nicName": "NIC-Perso",
+		"publicIPName": "public-IP",
+		"publicIPType": "Dynamic",
+		"vnetName": "vnet-perso",
+		"nsgName": "nsg-perso",
+		"sshKeyPass": "[concat('/home/', parameters('adminUserName'),'/.ssh/authorized_keys')]",
+		"vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+		"subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+		"apiVersion": "23-02-2018",
+		"availabilitySetName": "availabilitySet1"
+	},
+
+
+
+
+	"resources": [
+		{
+			"apiVersion": "2017-03-30",
+			"type": "Microsoft.Compute/availabilitySets",
+			"name": "[variables('availabilitySetName')]",
+			"location": "[variables('location')]",
+			"sku": {
+				"name": "Aligned"
+			},
+			"properties": {
+				"platformFaultDomainCount": "3",
+				"platformUpdateDomainCount": "20"
+			}
+		},
+		{
+			"apiVersion": "2017-03-30",
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"name": "[variables('nsgName')]",
+			"location": "[variables('location')]",
+			"properties": {
+				"securityRules": [
+					{
+						"name": "ssh_rule",
+						"properties": {
+							"description": "Verrouillage du port 22 en inbound.",
+							"protocol": "Tcp",
+							"sourcePortRange": "*",
+							"destinationPortRange": "22",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 100,
+							"direction": "inbound"
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2017-03-30",
+			"type": "Microsoft.Network/publicIPAddresses",
+			"name": "[variables('publicIPName')]",
+			"location": "[variables('location')]",
+			"properties": {
+				"publicIPAllocationMethod": "[variables('publicIPType')]",
+				"dnsSettings": {
+					"domainNameLabel": "[variables('uniqueDnsLabelPrefix')]"
+				}
+			}
+		},
+		{
+			"apiVersion": "2017-03-30",
+			"type": "Microsoft.Network/virtualNetworks",
+			"name": "[variables('vnetName')]",
+			"location": "[variables('location')]",
+			"dependsOn": [
+				"[concat('Microsoft.Network/networkSecurityGroups/',variables('nsgName'))]"
+			],
+			"properties": {
+				"addressSpace": {
+					"addressPrefixes": [
+						"[variables('addressPrefix')]"
+					]
+				},
+				"subnets": [
+					{
+						"name": "[variables('subnetName')]",
+						"properties": {
+							"addressPrefix": "[variables('subnetPrefix')]",
+							"networkSecurityGroup": {
+								"id": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgName'))]"
+							}
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2017-03-30",
+			"type": "Microsoft.Network/networkInterfaces",
+			"name": "[variables('nicName')]",
+			"location": "[variables('location')]",
+			"dependsOn": [
+				"[concat('Microsoft.Network/publicIPAddresses/',variables('publicIPName'))]",
+				"[concat('Microsoft.Network/virtualNetworks/',variables('vnetName'))]"
+			],
+			"properties": {
+				"ipConfigurations": [
+					{
+						"name": "ipconfig",
+						"properties": {
+							"privateIPAllocationMethod": "Dynamic",
+							"publicIPAddress": {
+								"id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPName'))]"
+							},
+							"subnet": {
+								"id": "[variables('subnetRef')]"
+							}
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2016-04-30-preview",
+			"type": "Microsoft.Compute/virtualMachines",
+			"name": "[parameters('vmName1')]",
+			"location": "[variables('location')]",
+			"dependsOn": [
+				"[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+			],
+			"properties": {
+				"availabilitySet": {
+    				"id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+    			},
+				"hardwareProfile": {
+					"vmSize": "[parameters('vmSizeList')]"
+				},
+				"osProfile": {
+					"computerName": "[parameters('vmName1')]",
+					"adminUsername": "[parameters('adminUserName')]",
+					"linuxConfiguration": {
+						"disablePasswordAuthentication": true,
+						"ssh": {
+							"publicKeys": [
+								{
+									"path": "[variables('sshKeyPass')]",
+									"keyData": "[parameters('sshKeyData')]"
+								}
+							]
+						}
+					}
+				},
+				"storageProfile": {
+					"imageReference": {
+						"publisher": "[variables('imagePublisher')]",
+						"offer": "[variables('imageOffer')]",
+						"sku": "[variables('imageVersion')]",
+						"version": "latest"
+					},
+					"osDisk": {
+						"createOption": "fromImage"
+					}
+				},
+				"networkProfile": {
+					"networkInterfaces": [
+						{
+							"id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+						}
+					]
+				}
+			}
+		}
+	],
+
+
+
+
+	"outputs": {
+		"sshCommand": {
+			"type": "string",
+			"value": "[concat('ssh ', parameters('adminUserName'), '@', variables('uniqueDnsLabelPrefix'), '.', resourceGroup().location,'.cloudapp.azure.com')]"
+		}
+	}
 }
