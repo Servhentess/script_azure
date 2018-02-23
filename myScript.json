@@ -278,6 +278,57 @@
 					]
 				}
 			}
+		},
+
+		{
+			"apiVersion": "2016-04-30-preview",
+			"type": "Microsoft.Compute/virtualMachines",
+			"name": "[parameters('vmName2')]",
+			"location": "[variables('location')]",
+			"dependsOn": [
+				"[concat('Microsoft.Network/networkInterfaces/', variables('nicName2'))]"
+			],
+			"properties": {
+				"availabilitySet": {
+    				"id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+    			},
+				"hardwareProfile": {
+					"vmSize": "[parameters('vmSizeList')]"
+				},
+				"osProfile": {
+					"computerName": "[parameters('vmName2')]",
+					"adminUsername": "[parameters('adminUserName')]",
+					"linuxConfiguration": {
+						"disablePasswordAuthentication": true,
+						"ssh": {
+							"publicKeys": [
+								{
+									"path": "[variables('sshKeyPass')]",
+									"keyData": "[parameters('sshKeyData')]"
+								}
+							]
+						}
+					}
+				},
+				"storageProfile": {
+					"imageReference": {
+						"publisher": "[variables('imagePublisher')]",
+						"offer": "[variables('imageOffer')]",
+						"sku": "[variables('imageVersion')]",
+						"version": "latest"
+					},
+					"osDisk": {
+						"createOption": "fromImage"
+					}
+				},
+				"networkProfile": {
+					"networkInterfaces": [
+						{
+							"id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName2'))]"
+						}
+					]
+				}
+			}
 		}
 	],
 
