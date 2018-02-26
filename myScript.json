@@ -320,7 +320,10 @@
 						"version": "latest"
 					},
 					"osDisk": {
-						"createOption": "fromImage"
+						"createOption": "fromImage",
+						"managedDisk": {
+							"storageAccountType": "Standard_LRS"
+						}
 					}
 				},
 				"networkProfile": {
@@ -371,7 +374,10 @@
 						"version": "latest"
 					},
 					"osDisk": {
-						"createOption": "fromImage"
+						"createOption": "fromImage",
+						"managedDisk": {
+							"storageAccountType": "Standard_LRS"
+						}
 					}
 				},
 				"networkProfile": {
@@ -419,7 +425,10 @@
 						"version": "latest"
 					},
 					"osDisk": {
-						"createOption": "fromImage"
+						"createOption": "fromImage",
+						"managedDisk": {
+							"storageAccountType": "Standard_LRS"
+						}
 					}
 				},
 				"networkProfile": {
